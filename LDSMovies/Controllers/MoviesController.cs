@@ -28,12 +28,16 @@ namespace LDSMovies.Controllers
 
 		// GET: Movies
 		// Requires using Microsoft.AspNetCore.Mvc.Rendering;
-		public async Task<IActionResult> Index(string movieGenre, string searchString)
+		public async Task<IActionResult> Index(string movieGenre, string searchString, string movieReleaseDate)
 		{
 			// Use LINQ to get list of genres.
 			IQueryable<string> genreQuery = from m in _context.Movie
 											orderby m.Genre
 											select m.Genre;
+
+			IQueryable<DateTime> releaseDateQuery = from m in _context.Movie
+											orderby m.ReleaseDate
+											select m.ReleaseDate;
 
 			var movies = from m in _context.Movie
 						 select m;
@@ -48,8 +52,28 @@ namespace LDSMovies.Controllers
 				movies = movies.Where(x => x.Genre == movieGenre);
 			}
 
+			if (!String.IsNullOrEmpty(movieReleaseDate))
+			{
+				movies = movies.Where(x => x.ReleaseDate.ToString() == movieReleaseDate);
+			}
+
+			//if (movieReleaseDate != null)
+			//{
+			//	movies = movies.Where(x => x.ReleaseDate == movieReleaseDate);
+			//}
+
+			//if (!String.IsNullOrEmpty(movieReleaseDate.ToString()))
+			//{
+			//	if (movieReleaseDate.ToString() == "asc")
+			//	{
+			//		//Console.WriteLine("working");
+			//	}
+			//	movies = movies.Where(x => x.ReleaseDate == movieReleaseDate);
+			//}
+
 			var movieGenreVM = new MovieGenreViewModel();
 			movieGenreVM.Genres = new SelectList(await genreQuery.Distinct().ToListAsync());
+			movieGenreVM.ReleaseDate = new SelectList(await releaseDateQuery.Distinct().ToListAsync());
 			movieGenreVM.Movies = await movies.ToListAsync();
 			movieGenreVM.SearchString = searchString;
 
